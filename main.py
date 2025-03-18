@@ -5,6 +5,7 @@ import os
 import time
 from datetime import datetime
 import asyncio
+import tarfile
 
 def get_model(model_path: str, model_name: str = 'yolov8n.pt'):
     full_model_path = os.path.join(model_path, model_name)
@@ -30,8 +31,7 @@ def get_model(model_path: str, model_name: str = 'yolov8n.pt'):
     return YOLO(full_model_path)
 
 # Async function to save image and bounding boxes
-async def save_frame(frame, boxes, frame_count,output_dir="output"):
-    
+async def save_frame(frame, boxes, frame_count, output_dir="output", queue=None):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     img_path = os.path.join(output_dir, f"frame_{frame_count}_{timestamp}.jpg")
     bbox_path = os.path.join(output_dir, f"frame_{frame_count}_{timestamp}_bboxes.txt")
@@ -48,8 +48,13 @@ async def save_frame(frame, boxes, frame_count,output_dir="output"):
 
     print(f"[Saved] {img_path} and {bbox_path}")
 
+    # Put file paths into the queue
+    if queue:
+        await queue.put(img_path)
+        await queue.put(bbox_path)
+        print(f"Added {img_path} and {bbox_path} to queue")
 
-async def process_video(video_path,output_dir="output"):
+async def process_video(video_path, output_dir="output", queue=None):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     frame_count = 0
@@ -74,28 +79,56 @@ async def process_video(video_path,output_dir="output"):
             cv2.putText(frame, f"{label} {confidence:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         # Save frame and bounding boxes asynchronously
-        await save_frame(frame, boxes, frame_count,output_dir=output_dir)
+        await save_frame(frame, boxes, frame_count, output_dir=output_dir, queue=queue)
 
         frame_count += 1
-        time.sleep(1)
+        await asyncio.sleep(1)
+
     
     cap.release()
 
+async def archive_results(output_dir="archive", queue=None):
+    os.makedirs(output_dir, exist_ok=True)
+    while True:
+        await asyncio.sleep(4)
+        print("Checking for files to archive...")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        tar_path = os.path.join(output_dir, f"archive_{timestamp}.tar.gz")
+        
+        with tarfile.open(tar_path, "w:gz") as tar:
+            while not queue.empty():
+                file_path = await queue.get()
+                print(f"Archiving {file_path}")
+                if os.path.isfile(file_path):
+                    tar.add(file_path, arcname=os.path.basename(file_path))
+                    os.remove(file_path)
+        
+        print(f"Archived files to {tar_path}")
 
+async def tasks(video_path, output_dir, archive_dir):
+    result_queue = asyncio.Queue()
+    tasks = [
+        asyncio.create_task(process_video(video_path, output_dir=output_dir, queue=result_queue)),
+        asyncio.create_task(archive_results(output_dir=archive_dir, queue=result_queue))
+    ]
+    await asyncio.gather(*tasks)
 
 if __name__=="__main__":
     model_dir = "models"
     model_name = 'yolov8n.pt'
     model = get_model(model_dir, model_name)
 
-    video_dir="videos"
-    video_name="input_video.mp4"
-
-    output_dir="output"
+    video_dir = "videos"
+    video_name = "input_video.mp4"
     video_path = os.path.join(video_dir, video_name)
+
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
     
-    asyncio.run(process_video(video_path,output_dir=output_dir))
-   # process_video(video_path,output_dir=output_dir)
-    
+    archive_dir = "archive"
+    os.makedirs(archive_dir, exist_ok=True)
+
+    asyncio.run(tasks(video_path, output_dir, archive_dir))
+
 
 
