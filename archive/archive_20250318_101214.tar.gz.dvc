@@ -1,0 +1,5 @@
+outs:
+- md5: 32ea09bbc03346d5a064681017052f3e
+  size: 73
+  hash: md5
+  path: archive_20250318_101214.tar.gz
