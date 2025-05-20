@@ -7,7 +7,7 @@ import threading
 import os
 import time
 import shutil
-
+import logging
 
 def process_video(video_path, input_size, smoke_threshold=0.5):
     camera_src = "file://" + video_path
@@ -28,6 +28,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                     sample_path = "image.jpg"
                     sample.save(sample_path)
                     plugin.upload_file(sample_path, timestamp=sample.timestamp)
+                    logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
                 time.sleep(1 / 30)
 
 
@@ -61,6 +62,7 @@ if __name__ == "__main__":
         input_details = interpreter.get_input_details()
         input_size = (input_details[0]['shape'][2], input_details[0]['shape'][1])
         result_dir = "test/uploads"
+        logging.info(f"model loaded, Input size: {input_size}")
     except Exception as e:
         print(f"Error initializing TFLite interpreter: {e}")
         raise
