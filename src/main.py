@@ -28,11 +28,21 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                     sample_path = "image.jpg"
                     sample.save(sample_path)
                     plugin.upload_file(sample_path, timestamp=sample.timestamp)
+                    plugin.publish("classification" + 'certainty', predictions[0][0],
+                                    timestamp=sample.timestamp,
+                                    meta={"camera": f'{camera_src}'})
+                    
                     logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
                 time.sleep(1 / 30)
 
 
 if __name__ == "__main__":
+    FORMAT = "[%(asctime)s %(filename)s:%(lineno)s]%(levelname)s: %(message)s"
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format=FORMAT,
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
     # Path to the folder containing videos downloaded in the Dockerfile
     docker_videos_folder = "/src/"
     
@@ -68,6 +78,6 @@ if __name__ == "__main__":
         raise
 
     # Process the video
-    process_video(video_path, input_size, 0.9)
+    process_video(video_path, input_size, 0.5)
 
 
