@@ -39,5 +39,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     COPY src /src
     
     # Set the entrypoint
-    ENTRYPOINT ["/bin/bash", "-c", "tail -f /dev/null"]
-    #ENTRYPOINT [ "python3", "inference.py" ]
+    #ENTRYPOINT ["/bin/bash", "-c", "tail -f /dev/null"]
+    ENTRYPOINT [ "python3", "inference.py" ]
