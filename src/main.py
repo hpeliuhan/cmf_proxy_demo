@@ -42,7 +42,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                                     meta={"camera": f'{camera_src}'})
                     
                     logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
-                #time.sleep(1/2)
+                time.sleep(1/4)
 
 
 if __name__ == "__main__":
