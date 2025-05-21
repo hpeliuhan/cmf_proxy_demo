@@ -11,30 +11,30 @@ import logging
 
 def process_video(video_path, input_size, smoke_threshold=0.5):
     camera_src = "file://" + video_path
+    with Plugin() as plugin:
+        with Camera(camera_src) as camera:
+            for sample in camera.stream():
+                frame_resized = cv2.resize(sample.data, input_size)
+                frame_normalized = frame_resized.astype("float32") / 255.0
+                frame_expanded = np.expand_dims(frame_normalized, axis=0)
 
-    with Camera(camera_src) as camera:
-        for sample in camera.stream():
-            frame_resized = cv2.resize(sample.data, input_size)
-            frame_normalized = frame_resized.astype("float32") / 255.0
-            frame_expanded = np.expand_dims(frame_normalized, axis=0)
-
-            # Perform inference
-            input_details = interpreter.get_input_details()
-            output_details = interpreter.get_output_details()
-            interpreter.set_tensor(input_details[0]['index'], frame_expanded)
-            interpreter.invoke()
-            predictions = interpreter.get_tensor(output_details[0]['index'])
-            if predictions[0][0] >= smoke_threshold:
-                sample_path = "image.jpg"
-                sample.save("image.jpg")
-                with Plugin() as plugin:
+                # Perform inference
+                input_details = interpreter.get_input_details()
+                output_details = interpreter.get_output_details()
+                interpreter.set_tensor(input_details[0]['index'], frame_expanded)
+                interpreter.invoke()
+                predictions = interpreter.get_tensor(output_details[0]['index'])
+                if predictions[0][0] >= smoke_threshold:
+                    sample_path = "image.jpg"
+                    sample.save("image.jpg")
+                    
                     plugin.upload_file("image.jpg", timestamp=sample.timestamp)
                     plugin.publish("classification.certainty", float(predictions[0][0]),
                                     timestamp=sample.timestamp,
                                     meta={"camera": f'{camera_src}'})
-                
-                logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
-            #time.sleep(1 / 30)
+                    
+                    logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
+                #time.sleep(1 / 30)
 
 
 if __name__ == "__main__":
