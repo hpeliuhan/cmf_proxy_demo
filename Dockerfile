@@ -33,8 +33,8 @@ RUN curl -L -o /src/video.mp4 https://raw.githubusercontent.com/hpeliuhan/cmf_te
 ENV MODEL_TFLITE=/src/model.tflite
 RUN curl -L -o $MODEL_TFLITE https://raw.githubusercontent.com/hpeliuhan/cmf_test_example/main/model.tflite
 #update numpy
-RUN pip3 install ffmpeg tflite-runtime
-#RUN pip3 install ffmpeg numpy==1.23.5 opencv-python-headless tflite-runtime --upgrade
+
+RUN pip3 install ffmpeg numpy==1.23.5 opencv-python-headless tflite-runtime --upgrade
 
 # Copy source code into the container
 COPY src /src
