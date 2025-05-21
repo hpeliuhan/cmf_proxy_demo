@@ -24,7 +24,7 @@ RUN pip3 install --no-cache-dir git+https://github.com/waggle-sensor/pywaggle
 
 # Download the first matching video and save it as a fixed name
 # Set build argument for the video name
-ARG VIDEO_NAME="fire_sample1.mp4"
+ARG VIDEO_NAME="fire_sample2.mp4"
 
 # Download the specified video and save it as a fixed name
 RUN curl -L -o /src/video.mp4 https://raw.githubusercontent.com/hpeliuhan/cmf_test_example/main/$VIDEO_NAME
