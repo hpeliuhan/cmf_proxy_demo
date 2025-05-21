@@ -80,6 +80,6 @@ if __name__ == "__main__":
         raise
 
     # Process the video
-    process_video(video_path, input_size, 0.96)
+    process_video(video_path, input_size, 0.95)
 
 
