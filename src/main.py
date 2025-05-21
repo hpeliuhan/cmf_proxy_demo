@@ -67,8 +67,8 @@ if __name__ == "__main__":
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found at {video_path}")
 
-    PYWAGGLE_dir = os.environ.get("PYWAGGLE_LOG_DIR", "test")
-    os.environ["PYWAGGLE_LOG_DIR"] = PYWAGGLE_dir
+    #PYWAGGLE_dir = os.environ.get("PYWAGGLE_LOG_DIR", "test")
+    #os.environ["PYWAGGLE_LOG_DIR"] = PYWAGGLE_dir
 
     print(f"Processing video: {video_file} ")
 
