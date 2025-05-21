@@ -33,7 +33,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                         logging.error(f"Error saving image: {e}")
                         continue
                     try:
-                        plugin.upload_file("test.txt", timestamp=sample.timestamp)
+                        plugin.upload_file("image.jpg", timestamp=sample.timestamp)
                     except Exception as e:
                         logging.error(f"Error uploading image: {e}")
                         continue
