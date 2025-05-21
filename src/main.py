@@ -28,7 +28,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                     sample_path = "image.jpg"
                     sample.save(sample_path)
                     plugin.upload_file(sample_path, timestamp=sample.timestamp)
-                    plugin.publish("classification certainty", float(predictions[0][0]),
+                    plugin.publish("classification.certainty", float(predictions[0][0]),
                                     timestamp=sample.timestamp,
                                     meta={"camera": f'{camera_src}'})
                     
