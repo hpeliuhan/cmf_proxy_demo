@@ -26,9 +26,9 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
             predictions = interpreter.get_tensor(output_details[0]['index'])
             if predictions[0][0] >= smoke_threshold:
                 sample_path = "image.jpg"
-                sample.save(sample_path)
+                sample.save("image.jpg")
                 with Plugin() as plugin:
-                    plugin.upload_file(sample_path, timestamp=sample.timestamp)
+                    plugin.upload_file("image.jpg", timestamp=sample.timestamp)
                     plugin.publish("classification.certainty", float(predictions[0][0]),
                                     timestamp=sample.timestamp,
                                     meta={"camera": f'{camera_src}'})
