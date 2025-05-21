@@ -26,10 +26,17 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                 predictions = interpreter.get_tensor(output_details[0]['index'])
                 if predictions[0][0] >= smoke_threshold:
                     logging.info(f"saving image to image.jpg")
+                    try:
 
-                    sample.save("image.jpg")
-                    
-                    plugin.upload_file("image.jpg", timestamp=sample.timestamp)
+                        sample.save("image.jpg")
+                    except Exception as e:
+                        logging.error(f"Error saving image: {e}")
+                        continue
+                    try:
+                        plugin.upload_file("image.jpg", timestamp=sample.timestamp)
+                    except Exception as e:
+                        logging.error(f"Error uploading image: {e}")
+                        continue
                     plugin.publish("classification.certainty", float(predictions[0][0]),
                                     timestamp=sample.timestamp,
                                     meta={"camera": f'{camera_src}'})
