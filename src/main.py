@@ -25,7 +25,8 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                 interpreter.invoke()
                 predictions = interpreter.get_tensor(output_details[0]['index'])
                 if predictions[0][0] >= smoke_threshold:
-                    sample_path = "image.jpg"
+                    logging.info(f"saving image to image.jpg")
+
                     sample.save("image.jpg")
                     
                     plugin.upload_file("image.jpg", timestamp=sample.timestamp)
@@ -34,7 +35,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                                     meta={"camera": f'{camera_src}'})
                     
                     logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
-                #time.sleep(1 / 30)
+                time.sleep(1/2)
 
 
 if __name__ == "__main__":
@@ -79,6 +80,6 @@ if __name__ == "__main__":
         raise
 
     # Process the video
-    process_video(video_path, input_size, 0.9)
+    process_video(video_path, input_size, 0.96)
 
 
