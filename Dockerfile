@@ -36,6 +36,9 @@ RUN curl -L -o $MODEL_TFLITE https://raw.githubusercontent.com/hpeliuhan/cmf_tes
 
 RUN pip3 install ffmpeg numpy==1.23.5 opencv-python-headless tflite-runtime --upgrade
 
+#Install cmf_sage
+
+RUN pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple cmfsage
 # Copy source code into the container
 COPY src /src
 

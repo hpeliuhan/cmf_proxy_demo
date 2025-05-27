@@ -8,6 +8,7 @@ import os
 import time
 import shutil
 import logging
+import cmfsage
 
 def process_video(video_path, input_size, smoke_threshold=0.5):
     camera_src = "file://" + video_path
@@ -67,8 +68,6 @@ if __name__ == "__main__":
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found at {video_path}")
 
-    #PYWAGGLE_dir = os.environ.get("PYWAGGLE_LOG_DIR", "test")
-    #os.environ["PYWAGGLE_LOG_DIR"] = PYWAGGLE_dir
 
     print(f"Processing video: {video_file} ")
 
@@ -85,6 +84,28 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error initializing TFLite interpreter: {e}")
         raise
+
+
+    '''cmf sage part'''   
+    '''Pipeline name: What's the pipeline to trace'''
+    '''Pipeline file: The mlmd file name, mlmd file be default'''
+    '''Model path: The location to the model'''
+    '''Result path: The location to the inference result'''
+    '''Git remote url: The git remote url to the AI repository'''
+    params = {
+        "pipeline_name": "wildfire-classification",
+        "pipeline_file": "mlmd", #this will be the branch name
+        "model_path": "model.tflite",
+        "result_path": "image.jpg",
+        #this can be a directory or a file
+        #if this is a file, cmf_sage will use timestamp to track the files changed. Apply higher monitoring frequency
+        #if this is a directory, cmf_sage will keep track of the files changed in the directory. Apply lower monitoring frequency
+        "git_remote_url": "https://github.com/hpeliuhan/cmf_proxy_demo.git",
+        "archiving": True,
+        "logging_window": 4 # seconds, #how often it logs the artifacts
+    }
+
+    cmf_logger = cmfsage(**params)
 
     # Process the video
     process_video(video_path, input_size, 0.95)
