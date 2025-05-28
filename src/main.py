@@ -8,7 +8,7 @@ import os
 import time
 import shutil
 import logging
-import cmfsage
+from cmfsage import cmfsage
 
 def process_video(video_path, input_size, smoke_threshold=0.5):
     camera_src = "file://" + video_path
@@ -25,15 +25,19 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                 interpreter.set_tensor(input_details[0]['index'], frame_expanded)
                 interpreter.invoke()
                 predictions = interpreter.get_tensor(output_details[0]['index'])
+                #logging.info(f"Predictions: {predictions}")
                 if predictions[0][0] >= smoke_threshold:
-                    logging.info(f"saving image to image.jpg")
+                    
                     try:
+                        #logging.info(f"saving image to image.jpg")
+                        cv2.imwrite("image.jpg", sample.data)
 
-                        sample.save("image.jpg")
+                        #sample.save("image.jpg")
                     except Exception as e:
                         logging.error(f"Error saving image: {e}")
                         continue
                     try:
+                        #logging.info(f"uploading image.jpg")
                         plugin.upload_file("image.jpg", timestamp=sample.timestamp)
                     except Exception as e:
                         logging.error(f"Error uploading image: {e}")
@@ -43,13 +47,13 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                                     meta={"camera": f'{camera_src}'})
                     
                     logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
-                time.sleep(1/4)
+                time.sleep(1)
 
 
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s %(filename)s:%(lineno)s]%(levelname)s: %(message)s"
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.CRITICAL,
         format=FORMAT,
         datefmt="%Y/%m/%d %H:%M:%S",
     )
@@ -83,7 +87,7 @@ if __name__ == "__main__":
         logging.info(f"model loaded, Input size: {input_size}")
     except Exception as e:
         print(f"Error initializing TFLite interpreter: {e}")
-        raise
+        raise FileNotFoundError(f"Model file not found at {model_path}")
 
 
     '''cmf sage part'''   
@@ -102,10 +106,11 @@ if __name__ == "__main__":
         #if this is a directory, cmf_sage will keep track of the files changed in the directory. Apply lower monitoring frequency
         "git_remote_url": "https://github.com/hpeliuhan/cmf_proxy_demo.git",
         "archiving": True,
-        "logging_window": 4 # seconds, #how often it logs the artifacts
+        "logging_interval": 6 # seconds, #how often it logs the artifacts
     }
 
     cmf_logger = cmfsage(**params)
+    cmf_logger.start()
 
     # Process the video
     process_video(video_path, input_size, 0.95)
