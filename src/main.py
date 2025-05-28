@@ -53,7 +53,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s %(filename)s:%(lineno)s]%(levelname)s: %(message)s"
     logging.basicConfig(
-        level=logging.CRITICAL,
+        level=logging.DEBUG,
         format=FORMAT,
         datefmt="%Y/%m/%d %H:%M:%S",
     )
