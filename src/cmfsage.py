@@ -92,7 +92,9 @@ class cmfsage:
                 tar_path = os.path.join(self.result_archive_dir, f"archive_{timestamp}.tar.gz")
                 with tarfile.open(tar_path, "w:gz") as tar:
                     for file in archive_paths:
-                        tar.add(file, arcname=file.name)
+                        # Maintain folder structure relative to result_backup_dir
+                        arcname = file.relative_to(self.result_backup_dir)
+                        tar.add(file, arcname=arcname)
                 logger.info(f"Created archive: {tar_path} with files: {archive_paths}")
                 await self.cmf_logging_queue.put(tar_path)
             await asyncio.sleep(self.result_archiving_interval)  # e.g., 3 seconds
