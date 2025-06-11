@@ -24,14 +24,18 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                 output_details = interpreter.get_output_details()
                 interpreter.set_tensor(input_details[0]['index'], frame_expanded)
                 interpreter.invoke()
+                result_path="results"
                 predictions = interpreter.get_tensor(output_details[0]['index'])
                 #logging.info(f"Predictions: {predictions}")
                 if predictions[0][0] >= smoke_threshold:
                     
                     try:
                         #logging.info(f"saving image to image.jpg")
-                        #cv2.imwrite("image.jpg", sample.data)
-
+                        cv2.imwrite("image.jpg", sample.data)
+                        #if not os.path.exists(result_path):
+                        #    os.makedirs(result_path)
+                        #timestamp=sample.timestamp
+                        #results_image_path = os.path.join(result_path,f"{timestamp}image.jpg")
                         sample.save("image.jpg")
                     except Exception as e:
                         logging.error(f"Error saving image: {e}")
@@ -47,7 +51,7 @@ def process_video(video_path, input_size, smoke_threshold=0.5):
                                     meta={"camera": f'{camera_src}'})
                     
                     logging.info(f"Smoke detected in frame at {sample.timestamp},with probability {predictions[0][0]}")
-                time.sleep(1/30)
+                time.sleep(1/2)
 
 
 if __name__ == "__main__":
@@ -105,7 +109,7 @@ if __name__ == "__main__":
         #if this is a file, cmf_sage will use timestamp to track the files changed. Apply higher monitoring frequency
         #if this is a directory, cmf_sage will keep track of the files changed in the directory. Apply lower monitoring frequency
         "git_remote_url": "https://github.com/hpeliuhan/cmf_proxy_demo.git",
-        "archiving": True,
+        "archiving": False,
         "logging_interval": 6 # seconds, #how often it logs the artifacts
     }
 
@@ -113,6 +117,6 @@ if __name__ == "__main__":
     cmf_logger.start()
 
     # Process the video
-    process_video(video_path, input_size, 0.8)
+    process_video(video_path, input_size, 0.9)
 
 

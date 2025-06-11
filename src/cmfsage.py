@@ -36,6 +36,7 @@ class cmfsage:
         self.cmf_logging_queue = asyncio.Queue() 
         self.cmf_archive_queue = asyncio.Queue()
         self.cmf_upload_queue = asyncio.Queue() 
+        self.base_dir = os.getcwd()
 
     def check_path(self):
         # If path exists, use os.path.isdir/os.path.isfile
@@ -92,8 +93,8 @@ class cmfsage:
                 tar_path = os.path.join(self.result_archive_dir, f"archive_{timestamp}.tar.gz")
                 with tarfile.open(tar_path, "w:gz") as tar:
                     for file in archive_paths:
-                        # Maintain folder structure relative to result_backup_dir
-                        arcname = file.relative_to(self.result_backup_dir)
+                        # Maintain folder structure relative to result_archive_dir
+                        arcname = os.path.relpath(file, self.base_dir)
                         tar.add(file, arcname=arcname)
                 logger.info(f"Created archive: {tar_path} with files: {archive_paths}")
                 await self.cmf_logging_queue.put(tar_path)
@@ -143,7 +144,9 @@ class cmfsage:
                         tar.add(self.pipeline_file, arcname=self.pipeline_file)
                     for file_path in archive_paths:
                         if os.path.exists(file_path):
-                            tar.add(file_path, arcname=os.path.basename(file_path))
+                            arcname = os.path.relpath(file_path, self.base_dir)
+                            tar.add(file_path, arcname=arcname)
+                            
                 await self.cmf_upload_queue.put(tar_path)
             await asyncio.sleep(0.05)  # short sleep for responsiveness
 
@@ -229,8 +232,9 @@ class cmfsage:
                 await asyncio.sleep(self.monitoring_interval)
 
         async def monitor_dir():
-            #check if there is new files in the directory
+            # Check if there are new files in the directory
             seen_files = set()
+            os.makedirs(self.result_backup_dir, exist_ok=True)
             while True:
                 current_files = set(Path(self.result_path).glob("*"))
                 new_files = current_files - seen_files
@@ -238,10 +242,18 @@ class cmfsage:
                     for file_path in new_files:
                         logger.info(f"New file detected: {file_path}")
                         seen_files.add(file_path)
+                        # Copy to result_backup_dir with timestamp
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                        dst_path = os.path.join(
+                            self.result_backup_dir,
+                            f"{timestamp}_{os.path.basename(file_path)}"
+                        )
+                        shutil.copy2(file_path, dst_path)
+                        logger.info(f"Copied {file_path} to {dst_path}")
                         if self.archiving:
-                            await self.result_archiving_queue.put(str(file_path))
+                            await self.result_archiving_queue.put(dst_path)
                         else:
-                            await self.cmf_logging_queue.put(str(file_path))
+                            await self.cmf_logging_queue.put(dst_path)
                 await asyncio.sleep(self.monitoring_interval)
         
         tasks = []
