@@ -117,6 +117,6 @@ if __name__ == "__main__":
     cmf_logger.start()
 
     # Process the video
-    process_video(video_path, input_size, 0.9)
+    process_video(video_path, input_size, 0.95)
 
 
